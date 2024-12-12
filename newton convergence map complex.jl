@@ -11,17 +11,20 @@ include("toolset.jl")
 # 635 x^7 - 2363 x^6 - 5842 x^5 + 29746 x^4 - 8509 x^3 - 72419 x^2 + 86868 x - 35028
 
 limit = Int(1e2)
-ba = -5
-bb = 5
+bay = 0
+bby = 0
+bax = -5
+bbx = 5
 steps = 1000
 if steps%1000!=0
 	println("There must be a multiple of 1000 for the steps.")
 	exit(-1)
 end
 
-chunks = Int(steps/1000)
+stepsize = 0.01 # (bby-bay)/steps
 
-stepsize = (bb-ba)/steps
+chunksx = ceil(Int, (bbx-bax)/stepsize/1000) + Int(bbx == bax)
+chunksy = ceil(Int, (bby-bay)/stepsize/1000) + Int(bby == bay)
 
 mua = 0
 mub = 0
@@ -38,49 +41,51 @@ npmap = 0
 
 for i in mua:paramstepsize:mub
 
-	global basepoly = Polynomial([-0.36,-0.64,0,1])
-	poly = basepoly+Polynomial([i])
+	global p = Polynomial([-0.36,-0.64,0,1])
+	poly = p+Polynomial([i])
 	println(poly)
 
 	# Small image version
 	@time begin
 
-		for sy in 0:chunks-1
-			for sx in 0:chunks-1
+		for sy in 0:chunksy-1
+			for sx in 0:chunksx-1
 
-				println("Doing chunk $(sy*chunks+sx) of $(chunks-1)")
+				println("Doing chunk $(sy*chunksy+sx) of $(chunksx*chunksy-1)")
 
-				ya = ba+((bb-ba)/chunks)*sy
-				yb = ba+((bb-ba)/chunks)*(sy+1)
-				xa = ba+((bb-ba)/chunks)*sx
-				xb = ba+((bb-ba)/chunks)*(sx+1)
+				ya = bay+((bby-bay)/chunksy)*sy
+				yb = bay+((bby-bay)/chunksy)*(sy+1)
+				xa = bax+((bbx-bax)/chunksx)*sx
+				xb = bax+((bbx-bax)/chunksx)*(sx+1)
 
 				# Grid to use
-				global xy = squaremap(xa, xb, ya, yb, stepsize, endpointx=(sx==chunks-1), endpointy=(sy==chunks-1))
+				global xy = squaremap(xa, xb, ya, yb, stepsize, endpointx=(sx==chunksx-1), endpointy=(sy==chunksy-1))
 				global npxy = newton.(poly, xy)
 				
 				# Creating file name and path
 				num = rpad("$i", length(split("$i", ".")[1])+1+length(split("$stepsize", ".")[1]), "0")
-				name = "($ba,$bb) steps=$steps lim=$limit"
+				name = "steps=$steps lim=$limit"
 				if mua==mub
-					path = "Figures/img $(basepoly.coeffs) ($ba,$bb) steps=$steps lim=$limit/"
+					path = "Figures/p=$(basepoly.coeffs)/x=($bax,$bbx) y=($bay,$bby)/"
 					name = "img "*name
 				else
-					path = "Anims/anim $(basepoly.coeffs) ($ba,$bb) steps=$steps lim=$limit/"
-					name = "img [mu=$num] "*name
+					path = "Anims/p=$(basepoly.coeffs)/x=($bax,$bbx) y=($bay,$bby)/"
+					name = "anim [mu=$num] "*name
 				end
-				if chunks > 1
+				if chunksx*chunksy > 1
 					name *= " part[$sy, $sx]"
 				end
 				extpng = ".png"
 				
 				global cmap
 				global npmap
-				ma = map(x->(real(x)-xa)/(xb-xa)+im*(imag(x)-ya)/(yb-ya), xy)
+				ma = map(x->(real(x)-xa)/(xb-xa+Int(xa==xb))+im*(imag(x)-ya)/(yb-ya+Int(ya==yb)), xy)
 				ma = map(x->min(1, max(0, real(x)))+im*min(1, max(0, imag(x))), ma)
-				mb = map(x->(real(x)-xa)/(xb-xa)+im*(imag(x)-ya)/(yb-ya), npxy)
+				mb = map(x->(real(x)-xa)/(xb-xa+Int(xa==xb))+im*(imag(x)-ya)/(yb-ya+Int(ya==yb)), npxy)
 				mb = map(x->min(1, max(0, real(x)))+im*min(1, max(0, imag(x))), mb)
 				cmap = map(x->RGB(real(x), 0, imag(x)), ma)
+				# println(cmap)
+				# break
 				savefigure(cmap, path*"cmap [full] "*name*extpng)
 				cmap = map(x->RGB(real(x), 0, 0), ma)
 				savefigure(cmap, path*"cmap [real] "*name*extpng)

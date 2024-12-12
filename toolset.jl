@@ -112,11 +112,11 @@ end
 function squaremap(xa, xb, ya, yb, stepsize; endpointx=true, endpointy=true)
 	x = xa:stepsize:xb
 	y = ya:stepsize:yb
-	if !endpointx
-		popat!(x, x.end)
+	if !endpointx && xa != xb
+		x = xa:stepsize:xb-stepsize
 	end
-	if !endpointy
-		popat!(y, y.end)
+	if !endpointy && ya != yb
+		y = ya:stepsize:yb-stepsize
 	end
 	xy = [i+j*im for j in y, i in x]
 	return xy

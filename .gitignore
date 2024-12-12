@@ -1,3 +1,5 @@
 .vscode
 *.py
 __pycache__
+Newton project venv
+*.psb
