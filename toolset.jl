@@ -1,4 +1,5 @@
 using Polynomials
+using PNGFiles
 
 function newton(p, z)
 	return z-p(z)/(derivative(p)(z))
@@ -89,11 +90,12 @@ function savefigure(img, pathname="fig.png", savefig=true)
 		mkpath(join(split(pathname, "/")[begin:end-1], "/")*"/")
 	end
 	PNGFiles.save(pathname, img)
+	return img
 end
 
-function createfigure(cr, grayscale=false, pathname="fig.png", savefig=true)
+function createfigure(cr, pathname="fig.png", grayscale=false, savefig=true)
 	img = 0
-	if grayscale
+	if size(cr[1]) == ()
 		global img = colorview(Gray, cr)
 	else
 		global img = colorview(RGB, cr)

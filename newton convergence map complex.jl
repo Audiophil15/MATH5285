@@ -1,7 +1,6 @@
 using Plots
 using Polynomials
 using Images, ImageView
-using PNGFiles
 using JLD
 
 include("toolset.jl")
@@ -11,8 +10,8 @@ include("toolset.jl")
 # 635 x^7 - 2363 x^6 - 5842 x^5 + 29746 x^4 - 8509 x^3 - 72419 x^2 + 86868 x - 35028
 
 limit = Int(1e2)
-bay = 0
-bby = 0
+bay = -5
+bby = 5
 bax = -5
 bbx = 5
 steps = 1000
@@ -66,10 +65,10 @@ for i in mua:paramstepsize:mub
 				num = rpad("$i", length(split("$i", ".")[1])+1+length(split("$stepsize", ".")[1]), "0")
 				name = "steps=$steps lim=$limit"
 				if mua==mub
-					path = "Figures/p=$(basepoly.coeffs)/x=($bax,$bbx) y=($bay,$bby)/"
+					path = "Figures/p=$(p.coeffs)/x=($bax,$bbx) y=($bay,$bby)/"
 					name = "img "*name
 				else
-					path = "Anims/p=$(basepoly.coeffs)/x=($bax,$bbx) y=($bay,$bby)/"
+					path = "Anims/p=$(p.coeffs)/x=($bax,$bbx) y=($bay,$bby)/"
 					name = "anim [mu=$num] "*name
 				end
 				if chunksx*chunksy > 1
@@ -84,8 +83,6 @@ for i in mua:paramstepsize:mub
 				mb = map(x->(real(x)-xa)/(xb-xa+Int(xa==xb))+im*(imag(x)-ya)/(yb-ya+Int(ya==yb)), npxy)
 				mb = map(x->min(1, max(0, real(x)))+im*min(1, max(0, imag(x))), mb)
 				cmap = map(x->RGB(real(x), 0, imag(x)), ma)
-				# println(cmap)
-				# break
 				savefigure(cmap, path*"cmap [full] "*name*extpng)
 				cmap = map(x->RGB(real(x), 0, 0), ma)
 				savefigure(cmap, path*"cmap [real] "*name*extpng)
@@ -103,7 +100,7 @@ for i in mua:paramstepsize:mub
 				# xii, yii = zlisttocrcoord(t, ba, bb, steps)
 				# c = 1.:length(t)
 				# anim = @animate for i in 1:length(xii)
-				# 	plot(img, size=(1500,1500))
+				# 	plot(x, y, img, size=(1500,1500))
 				# 	plot!(xii[1:i], yii[1:i])
 				# 	scatter!(xii[1:i], yii[1:i],markersize=10,markerstrokewidth=0.2,zcolor=c,color=cgrad(:bam, rev = true))
 				# end
@@ -120,7 +117,7 @@ for i in mua:paramstepsize:mub
 
 				# Saving picture
 				global img
-				img = savefigure(cr, path*name*extpng)
+				img = createfigure(cr, path*name*extpng)
 			end
 		end
 
@@ -142,7 +139,7 @@ t = juliasteps(x0, p)
 xii, yii = zlisttocrcoord(t, ba, bb, steps)
 c = 1.:length(t)
 anim = @animate for i in 1:length(xii)
-	plot(img, size=(1500,1500))
+	plot(x, y, img, size=(1500,1500))
 	plot!(xii[1:i], yii[1:i])
 	scatter!(xii[1:i], yii[1:i],markersize=10,markerstrokewidth=0.2,zcolor=c,color=cgrad(:bam, rev = true))
 end
@@ -167,20 +164,24 @@ for i in eachindex(juliabubbles)
 	end
 end
 
-c = 1.:length(t)
+x = bax:stepsize:bbx
+y = bay:stepsize:bby
 for i in eachindex(juliabubbles)
 	println(i)
 	j1 = juliabubbles[i]
-	out = plot(img, size=(1500,1500))
+	out = plot(x, y, img, size=(750,750))
 	for j in eachindex(j1)
 		x0 = xy[j1[j]...]
 		t = juliasteps(x0, p)
-		xii, yii = zlisttocrcoord(t, ba, bb, steps)
-		out = plot!(xii, yii, primary=false, linecolor=cgrad(:matter, length(j1), categorical = true)[j])
-		out = scatter!(xii, yii, markersize=10,markerstrokewidth=0.2,zcolor=c,color=cgrad(:bam, rev = true), primary=false)
+		c = 1.:length(t)
+		# xii, yii = zlisttocrcoord(t, bax, bbx, steps)
+		# out = plot!(xii, yii, primary=false, linecolor=cgrad(:matter, length(j1), categorical = true)[j])
+		# out = scatter!(xii, yii, markersize=10,markerstrokewidth=0.2,zcolor=c,color=cgrad(:bam, rev = true), primary=false)
+		out = plot!(real.(t), imag.(t), primary=false, linecolor=cgrad(:matter, length(j1), categorical = true)[j])
+		out = scatter!(real.(t), imag.(t), markersize=5,markerstrokewidth=0.2,zcolor=c,color=cgrad(:bam, rev = true), primary=false)
 		# c = 1.:length(t)
 		# anim = @animate for i in 1:length(xii)
-		# 	plot(img, size=(1500,1500))
+		# 	plot(x, y, img, size=(1500,1500))
 		# 	plot!(xii[1:i], yii[1:i])
 		# 	scatter!(xii[1:i], yii[1:i],markersize=10,markerstrokewidth=0.2,zcolor=c,color=cgrad(:bam, rev = true))
 		# end
@@ -189,5 +190,6 @@ for i in eachindex(juliabubbles)
 	savefig(out, "plots/path groups - group $i.png")
 end
 
+# 7, 26, 156, 13, 181, 210
 
 
