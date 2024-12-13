@@ -40,7 +40,9 @@ npmap = 0
 
 for i in mua:paramstepsize:mub
 
-	global p = Polynomial([-0.36,-0.64,0,1])
+	# global p = Polynomial([-0.36,-0.64,0,1])
+	global p = Polynomial([0,+23,0,-10,0,3])
+	# global p = Polynomial([-35028, 86868, -72419, -8509, 29746, -5842, -2363, 635])
 	poly = p+Polynomial([i])
 	println(poly)
 
@@ -82,18 +84,18 @@ for i in mua:paramstepsize:mub
 				ma = map(x->min(1, max(0, real(x)))+im*min(1, max(0, imag(x))), ma)
 				mb = map(x->(real(x)-xa)/(xb-xa+Int(xa==xb))+im*(imag(x)-ya)/(yb-ya+Int(ya==yb)), npxy)
 				mb = map(x->min(1, max(0, real(x)))+im*min(1, max(0, imag(x))), mb)
-				cmap = map(x->RGB(real(x), 0, imag(x)), ma)
-				savefigure(cmap, path*"cmap [full] "*name*extpng)
 				cmap = map(x->RGB(real(x), 0, 0), ma)
 				savefigure(cmap, path*"cmap [real] "*name*extpng)
 				cmap = map(x->RGB(0, 0, imag(x)), ma)
 				savefigure(cmap, path*"cmap [imag] "*name*extpng)
-				npmap = map(x->RGB(real(x), 0, imag(x)), mb)
-				savefigure(npmap, path*"npmap [full] "*name*extpng)
+				cmap = map(x->RGB(real(x), 0, imag(x)), ma)
+				savefigure(cmap, path*"cmap [full] "*name*extpng)
 				npmap = map(x->RGB(real(x), 0, 0), mb)
 				savefigure(npmap, path*"npmap [real] "*name*extpng)
 				npmap = map(x->RGB(0, 0, imag(x)), mb)
 				savefigure(npmap, path*"npmap [imag] "*name*extpng)
+				npmap = map(x->RGB(real(x), 0, imag(x)), mb)
+				savefigure(npmap, path*"npmap [full] "*name*extpng)
 
 				# x0 = xy[juliabubbles[36][1]...]
 				# t = juliasteps(x0, p)
@@ -118,6 +120,11 @@ for i in mua:paramstepsize:mub
 				# Saving picture
 				global img
 				img = createfigure(cr, path*name*extpng)
+
+				cnpmap = map(x->RGB(x), img)
+				cnpmap = colorview(RGB, channelview(cnpmap)[:, axes(npmap)...] .*= channelview(npmap))
+				savefigure(cnpmap, path*"cmap+npmap "*name*extpng)
+
 			end
 		end
 
